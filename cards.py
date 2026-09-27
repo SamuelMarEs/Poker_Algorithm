@@ -6,8 +6,7 @@ and viceversa (given the card value, return the suit and rank).
 """
 
 def make_card(rank : int, suit : int) -> int:
-    """
-    Given a rank and a suit, gives a number from 0 to 51 that represents the card.
+    """Given a rank and a suit, gives a number from 0 to 51 that represents the card.
 
     Args:
         rank (int): number from 0 to 12 that holds the value of the card.
@@ -19,8 +18,7 @@ def make_card(rank : int, suit : int) -> int:
     return rank * 4 + suit
 
 def get_rank(card : int) -> int:
-    """
-    Given a card, returns it's rank.
+    """Given a card, returns it's rank.
 
     Args:
         card (int): number from 0 to 51 that represents the card.
@@ -31,8 +29,7 @@ def get_rank(card : int) -> int:
     return card // 4
 
 def get_suit(card : int) -> int:
-    """
-    Given a card, returns it's suit.
+    """Given a card, returns it's suit.
 
     Args:
         card (int): number from 0 to 51 that represents the card.
@@ -43,8 +40,7 @@ def get_suit(card : int) -> int:
     return card % 4
 
 def to_string(card : int) -> tuple[str, str]:
-    """
-    Converts the card number into a its suit and rank
+    """Converts the card number into a its suit and rank
     
     Args:
         card (int): number from 0 to 51
