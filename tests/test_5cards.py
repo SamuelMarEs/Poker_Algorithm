@@ -1,4 +1,4 @@
-from card5_evaluator import evaluate5
+from evaluator import evaluate5
 from cards import hand_to_list
 
 hand1 = []
