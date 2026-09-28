@@ -56,4 +56,43 @@ def to_string(card : int) -> tuple[str, str]:
     rank : int = get_rank(card)
     
     return ranks[rank], suits[suit]
+
+def to_int(card : tuple) -> int:
+    """Given a rank and a suit, returns a numerical value for the card.
+
+    Args:
+        card (tuple): tuple of the form ("rank", "suit"), both as string.
+
+    Raises:
+        ValueError: if either the rank or the suit are not valid, the code fails.
+
+    Returns:
+        int: numerical value from 0 to 51
+    """
     
+    suits : list = ["clubs", "diamonds", "hearts", "spades"]
+    ranks : list = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+    
+    if card[0] not in ranks or card[1] not in suits:
+        raise ValueError("Invalid rank or suit")
+    
+    rank = ranks.index(card[0])
+    suit = suits.index(card[1])
+    
+    return make_card(rank, suit)
+    
+def hand_to_list(hand : list) -> list:
+    """Given a hand of cards as tuples of the form (rank, suit) as strings, converts the hand to numerical values.
+
+    Args:
+        hand (list): list with the tuple representing each card.
+        
+    Returns:
+        num_hand (list): list with the numerical value of the cards in the hand.
+    """
+    num_hand = []
+    
+    for i in range(len(hand)):
+        num_hand.append(to_int(hand[i]))
+        
+    return num_hand

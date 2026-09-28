@@ -16,8 +16,12 @@ def encode(category : int, tiebreakers : list) -> int:
     """
     
     score = category
-    for rank in tiebreakers:
-        score = score * 13 + rank
+    for i in range(5):
+        if i < len(tiebreakers):
+            t = tiebreakers[i]
+        else:
+            t = 0
+        score = score * 13 + t
     
     return score
 
