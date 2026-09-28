@@ -2,7 +2,7 @@ from itertools import combinations
 from collections import Counter
 
 # Adjust these imports to match your actual module/file names
-from card5_evaluator import evaluate5
+from evaluator import evaluate5
 
 
 EXPECTED = {
