@@ -1,13 +1,35 @@
+"""
+Autor: SamuelMarEs
+Assigns a numerical (integer value) to a hand.
+"""
 from cards import get_rank, get_suit
 
 def encode(category : int, tiebreakers : list) -> int:
+    """Given a category and list of ordered tiebreakers, computes a numerical value.
+
+    Args:
+        category (int): integer from 0 to 8 that represents the hands hierarchy.
+        tiebreakers (list): list with the tiebreakers (rank of each card in order of importance).
+
+    Returns:
+        int: numerical representation of the value of the hand.
+    """
+    
     score = category
     for rank in tiebreakers:
         score = score * 13 + rank
     
     return score
 
-def evaluate5(hand : list) -> None:
+def evaluate5(hand : list) -> int:
+    """Given a 5 card hand, retuns a numerical value with its hierarchical value.
+
+    Args:
+        hand (list): List with 5 cards (each one a number from 0 to 51).
+
+    Returns:
+        int: Integer that represents the value of the hand.
+    """
     
     # Number of times each rank (0 to 12) appears in the hand
     rank_counts : list = [0] * 13 
