@@ -2,28 +2,9 @@
 Autor: SamuelMarEs
 Assigns a numerical (integer value) to a hand.
 """
+from itertools import combinations, combinations_with_replacement
 from cards import get_rank, get_suit
-
-def encode(category : int, tiebreakers : list) -> int:
-    """Given a category and list of ordered tiebreakers, computes a numerical value.
-
-    Args:
-        category (int): integer from 0 to 8 that represents the hands hierarchy.
-        tiebreakers (list): list with the tiebreakers (rank of each card in order of importance).
-
-    Returns:
-        int: numerical representation of the value of the hand.
-    """
-    
-    score = category
-    for i in range(5):
-        if i < len(tiebreakers):
-            t = tiebreakers[i]
-        else:
-            t = 0
-        score = score * 13 + t
-    
-    return score
+from look_up_tables import encode, flush_table, nonflush_table
 
 def evaluate5(hand : list) -> int:
     """Given a 5 card hand, retuns a numerical value with its hierarchical value.
@@ -90,3 +71,10 @@ def evaluate5(hand : list) -> int:
     if counts[0] == 2:                      # one pair
         return encode(1, ordered_ranks)
     return encode(0, ranks_present)         # high card
+
+def evaluate7_naive(hand : list) -> int:
+    best = 0
+    for comb in combinations(hand, 5):
+        best = max(best, evaluate5(comb))
+    return best
+    
