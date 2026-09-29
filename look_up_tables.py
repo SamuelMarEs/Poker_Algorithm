@@ -65,43 +65,61 @@ def evaluate_ranks(ranks : list) -> int:
         rank_counts[r] += 1
     
     
-    groups = [(r,c) for r, c in enumerate(rank_counts) if c > 0]
-    counts = sorted([count for _, count in groups], reverse = True)
-    ordered_ranks = sorted([rank for rank, _ in groups], reverse=True)
+    groups = [(count, rank) for rank, count in enumerate(rank_counts) if count > 0]
+    groups.sort(key=lambda x: (x[0], x[1]), reverse=True)
+
+    counts = [c for c, _ in groups]
+    ordered = [r for _, r in groups]
     
-    # Quads
+        # Quads
     if counts[0] == 4:
-        return encode(7, [ordered_ranks[0], ordered_ranks[1]])
-    
-    # Full house
-    if counts[0] == 3 and counts[1] == 2:
-        return encode(6, [ordered_ranks[0], ordered_ranks[1]])
-    
+        quad = ordered[0]
+        kicker = max(r for r in range(13) if rank_counts[r] > 0 and r != quad)
+        return encode(7, [quad, kicker])
+
+    # Full house (handles 3+2 and 3+3)
+    if counts[0] == 3 and len(counts) > 1 and counts[1] >= 2:
+        trip = ordered[0]
+        pair = max(r for r in range(13) if rank_counts[r] >= 2 and r != trip)
+        return encode(6, [trip, pair])
+
     # Straight
-    sh = find_straight(ordered_ranks)
+    distinct = sorted([r for r in range(13) if rank_counts[r] > 0], reverse=True)
+    sh = find_straight(distinct)
     if sh != -1:
         return encode(4, [sh])
-    
+
     # Trips
     if counts[0] == 3:
-        return encode(3, [ordered_ranks[0], ordered_ranks[1], ordered_ranks[2]])
+        trip = ordered[0]
+        kickers = sorted([r for r in range(13) if rank_counts[r] > 0 and r != trip], reverse=True)[:2]
+        return encode(3, [trip] + kickers)
 
     # Two pairs
     if counts[0] == 2 and counts[1] == 2:
-        return encode(2, [ordered_ranks[0], ordered_ranks[1], ordered_ranks[2]])
-    
+        pairs = sorted([r for r in range(13) if rank_counts[r] >= 2], reverse=True)
+        kicker = max(r for r in range(13) if rank_counts[r] > 0 and r not in pairs[:2])
+        return encode(2, [pairs[0], pairs[1], kicker])
+
     # One pair
     if counts[0] == 2:
-        return encode(1, [ordered_ranks[0], ordered_ranks[1], ordered_ranks[2], ordered_ranks[3]])
-    
+        pair = ordered[0]
+        kickers = sorted([r for r in range(13) if rank_counts[r] > 0 and r != pair], reverse=True)[:3]
+        return encode(1, [pair] + kickers)
+
     # High card
-    return encode(0, ordered_ranks[:5])
+    return encode(0, sorted([r for r in range(13) if rank_counts[r] > 0], reverse=True)[:5])
 
 def nonflush_table() -> dict:
     table = {}
     # Enumerate every rank multiset of size 7
     for ranks in combinations_with_replacement(range(13), 7):
-        key = ranks         # tuple of 7 sorted ranks (ascending order)
+        counts = [0] * 13
+        for r in ranks:
+            counts[r] += 1
+        if max(counts) > 4:
+            continue
+        key = tuple(sorted(ranks, reverse=True))       # tuple of 7 sorted ranks (ascending order)
         # Evaluate as a 5-card hand ignoring suits
         score = evaluate_ranks(ranks)
         table[key] = score
