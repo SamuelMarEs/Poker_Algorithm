@@ -22,6 +22,11 @@ def encode(category : int, tiebreakers : list) -> int:
     return score
 
 def flush_table() -> dict:
+    """Generates a table with the values for all 5 card hands that are a flush
+
+    Returns:
+        dict: table with the value for each 5 card, with the key being the sum of bitwise values shifted right
+    """
     table = {}
     for combo in combinations(range(13), 5):
         # Check for straight flush within the combo
@@ -45,8 +50,14 @@ def flush_table() -> dict:
     return table
 
 def find_straight(ranks : list) -> int:
-    # ranks is a sorted descending list of distinct ranks
-    
+    """Determines if a hand is a straight, and returns the rank of the highest card.
+
+    Args:
+        ranks (list): sorted descending list of distinct ranks.
+
+    Returns:
+        int: high card of the hand.
+    """
     # Look up for any straight in descending order
     for i in range(len(ranks) - 4):
         if ranks[i] - ranks[i+4] == 4:
@@ -60,6 +71,15 @@ def find_straight(ranks : list) -> int:
     return -1
 
 def evaluate_ranks(ranks : list) -> int:
+    """Evaluates the value of any combination of cards given their rank.
+
+    Args:
+        ranks (list): list with the ranks of each card in our hand.
+
+    Returns:
+        int: numerical value associated for the hand.
+    """
+    
     rank_counts = [0] * 13
     for r in ranks:
         rank_counts[r] += 1
@@ -111,6 +131,11 @@ def evaluate_ranks(ranks : list) -> int:
     return encode(0, sorted([r for r in range(13) if rank_counts[r] > 0], reverse=True)[:5])
 
 def nonflush_table() -> dict:
+    """Generates a table with the values for all non-flush hands of 7 cards.
+
+    Returns:
+        dict: table with all the values for nonflush cards, where the key is the ordered descending ranks
+    """
     table = {}
     # Enumerate every rank multiset of size 7
     for ranks in combinations_with_replacement(range(13), 7):

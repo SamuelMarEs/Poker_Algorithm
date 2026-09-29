@@ -35,12 +35,28 @@ def evaluate5(hand : list) -> int:
         return evaluate_ranks(ranks)
 
 def evaluate7_naive(hand : list) -> int:
+    """Evaluates all possible 5 hand combos in a 7 carda hand
+
+    Args:
+        hand (list): hand of 7 cards as numbers from 0 to 51
+
+    Returns:
+        int: hand value for the best hand.
+    """
     best = 0
     for comb in combinations(hand, 5):
         best = max(best, evaluate5(comb))
     return best
  
 def evaluate7(hand: list) -> int:
+    """Using look up tables, compute the value of a 7 card hand.
+
+    Args:
+        hand (list): hand of 7 cards as numbers from 0 to 51.
+    
+    Returns:
+        int: hand value for the best hand.
+    """
     suit_counts = [0, 0, 0, 0]
     for card in hand:
         suit_counts[get_suit(card)] += 1
