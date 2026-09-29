@@ -2,9 +2,12 @@
 Autor: SamuelMarEs
 Assigns a numerical (integer value) to a hand.
 """
-from itertools import combinations, combinations_with_replacement
+from itertools import combinations
 from cards import get_rank, get_suit
-from look_up_tables import encode, flush_table, nonflush_table
+from look_up_tables import encode, flush_table, nonflush_table, find_straight
+
+FLUSH_TABLE = flush_table()
+NONFLUSH_TABLE = nonflush_table()
 
 def evaluate5(hand : list) -> int:
     """Given a 5 card hand, retuns a numerical value with its hierarchical value.
@@ -77,4 +80,36 @@ def evaluate7_naive(hand : list) -> int:
     for comb in combinations(hand, 5):
         best = max(best, evaluate5(comb))
     return best
+ 
+def evaluate7(hand : list) -> int:
+    # Suit histogram
+    suit_counts = [0, 0, 0, 0]
+    for card in hand:
+        suit_counts[get_suit(card)] += 1
     
+    # Find suit with 5+ cards
+    flush_suit = -1
+    for suit in range(3):
+        if suit_counts[suit] >= 5:
+            flush_suit = suit
+            break
+        
+    # Flush branch
+    if flush_suit != -1:
+        flush_ranks = []
+        for card in hand:
+            if get_suit(card) == flush_suit:
+                flush_ranks.append(get_suit(card))
+        flush_ranks.sort()
+        
+        # Check for straight flush
+        sf_high = find_straight(flush_ranks)
+        if sf_high != -1:
+            return encode(8, [sf_high])
+        top5 = flush_ranks[:5]
+        mask = sum(1 << r for r in top5)
+        return FLUSH_TABLE[mask]
+    
+    # Non flush branch
+    ranks = tuple(sorted([get_rank(card) for card in hand]))
+    return NONFLUSH_TABLE[ranks]
