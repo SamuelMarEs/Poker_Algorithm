@@ -89,8 +89,8 @@ def evaluate7(hand : list) -> int:
     
     # Find suit with 5+ cards
     flush_suit = -1
-    for suit in range(3):
-        if suit_counts[suit] >= 5:
+    for suit in suit_counts:
+        if suit >= 5:
             flush_suit = suit
             break
         
@@ -100,7 +100,7 @@ def evaluate7(hand : list) -> int:
         for card in hand:
             if get_suit(card) == flush_suit:
                 flush_ranks.append(get_suit(card))
-        flush_ranks.sort()
+        flush_ranks.sort(reverse=True)
         
         # Check for straight flush
         sf_high = find_straight(flush_ranks)

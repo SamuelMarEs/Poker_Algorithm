@@ -24,7 +24,6 @@ def encode(category : int, tiebreakers : list) -> int:
 def flush_table() -> dict:
     table = {}
     for combo in combinations(range(13), 5):
-        
         # Check for straight flush within the combo
         comb_desc = sorted(combo, reverse=True)
         is_straight = False
@@ -60,19 +59,15 @@ def find_straight(ranks : list) -> int:
     # No straight at all
     return -1
 
-def evaluate_ranks(ranks : list):
+def evaluate_ranks(ranks : list) -> int:
     rank_counts = [0] * 13
     for r in ranks:
         rank_counts[r] += 1
     
-    groups = []
-    for rank in range(13):
-        if rank_counts[rank] > 0:
-            groups.append((rank, rank_counts[rank]))
-    groups.sort()
     
-    counts = sorted([count for (_, count) in groups], reverse=True)
-    ordered_ranks = sorted([rank for (rank, _) in groups], reverse = True)
+    groups = [(r,c) for r, c in enumerate(rank_counts) if c > 0]
+    counts = sorted([count for _, count in groups], reverse = True)
+    ordered_ranks = sorted([rank for rank, _ in groups], reverse=True)
     
     # Quads
     if counts[0] == 4:
@@ -84,7 +79,7 @@ def evaluate_ranks(ranks : list):
     
     # Straight
     sh = find_straight(ordered_ranks)
-    if sh != 1:
+    if sh != -1:
         return encode(4, [sh])
     
     # Trips
@@ -106,7 +101,7 @@ def nonflush_table() -> dict:
     table = {}
     # Enumerate every rank multiset of size 7
     for ranks in combinations_with_replacement(range(13), 7):
-        key = ranks         # tuple of 7 sorted ranks
+        key = ranks         # tuple of 7 sorted ranks (ascending order)
         # Evaluate as a 5-card hand ignoring suits
         score = evaluate_ranks(ranks)
         table[key] = score
