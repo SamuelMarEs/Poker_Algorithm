@@ -40,35 +40,31 @@ def evaluate7_naive(hand : list) -> int:
         best = max(best, evaluate5(comb))
     return best
  
-def evaluate7(hand : list) -> int:
-    # Suit histogram
+def evaluate7(hand: list) -> int:
     suit_counts = [0, 0, 0, 0]
     for card in hand:
         suit_counts[get_suit(card)] += 1
-    
-    # Find suit with 5+ cards
+
     flush_suit = -1
-    for suit in suit_counts:
-        if suit >= 5:
-            flush_suit = suit
+    for i, count in enumerate(suit_counts):
+        if count >= 5:
+            flush_suit = i
             break
-        
-    # Flush branch
+
     if flush_suit != -1:
         flush_ranks = []
         for card in hand:
             if get_suit(card) == flush_suit:
-                flush_ranks.append(get_suit(card))
+                flush_ranks.append(get_rank(card))
         flush_ranks.sort(reverse=True)
-        
-        # Check for straight flush
+
         sf_high = find_straight(flush_ranks)
         if sf_high != -1:
             return encode(8, [sf_high])
+
         top5 = flush_ranks[:5]
         mask = sum(1 << r for r in top5)
         return FLUSH_TABLE[mask]
-    
-    # Non flush branch
+
     ranks = tuple(sorted([get_rank(card) for card in hand], reverse=True))
     return NONFLUSH_TABLE[ranks]
