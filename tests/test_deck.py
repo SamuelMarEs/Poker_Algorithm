@@ -1,4 +1,4 @@
-from deck import Deck
+from poker.deck import Deck
 import random
 
 rng = random.Random(42)

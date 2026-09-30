@@ -2,7 +2,7 @@ from itertools import combinations
 from collections import Counter
 
 # Adjust these imports to match your actual module/file names
-from evaluator import evaluate5
+from poker.evaluator import evaluate5
 
 
 EXPECTED = {

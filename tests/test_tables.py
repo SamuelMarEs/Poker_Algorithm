@@ -1,6 +1,6 @@
-from look_up_tables import nonflush_table, flush_table, encode, evaluate_ranks, find_straight
-from evaluator import evaluate7_naive, evaluate5
-from cards import to_string
+from poker.look_up_tables import nonflush_table, flush_table, encode, evaluate_ranks, find_straight
+from poker.evaluator import evaluate7_naive, evaluate5
+from poker.cards import to_string
 from itertools import combinations, combinations_with_replacement
 
 NONFLUSH_TABLE = nonflush_table()

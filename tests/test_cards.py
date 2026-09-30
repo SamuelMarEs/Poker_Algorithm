@@ -1,4 +1,4 @@
-from cards import to_string, make_card
+from poker.cards import to_string, make_card
 
 for i in range(52):
     print(to_string(i))
