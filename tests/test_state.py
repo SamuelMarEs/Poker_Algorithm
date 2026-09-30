@@ -1,6 +1,6 @@
 # tests/test_state.py
 import pytest
-from poker.state import Player, Street, GameState
+from state import Player, Street, GameState
 
 
 def test_player_init():

@@ -48,7 +48,7 @@ class GameState:
 
         self.street = Street.PREFLOP
         self.board = []
-        self.deck = None
+        self.deck = []
 
         self.pot = 0                # chips already collected
         self.current_bet = 0        # highest street_bet this street

@@ -1,5 +1,5 @@
-from poker.evaluator import evaluate5
-from poker.cards import hand_to_list
+from evaluator import evaluate5
+from cards import hand_to_list
 
 hand1 = []
 hand2 = []
