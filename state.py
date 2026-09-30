@@ -1,5 +1,6 @@
 from enum import IntEnum
 from deck import Deck
+from evaluator import evaluate7
 
 class Player:
     def __init__(self, seat, stack):
@@ -68,7 +69,7 @@ def start_hand(state, deck):
     state.min_raise = state.bb
 
     for p in state.players:
-        p.hole = deck.deal(2)
+        p.hole = state.deck.deal(2)
         p.committed = 0
         p.street_bet = 0
         p.folded = False
@@ -132,3 +133,182 @@ def next_active_after(state, seat, include_self=False):
         if not p.folded and not p.all_in:
             return s
     return None
+
+def legal_actions(state, seat):
+    p = player_at(state, seat)
+    to_call = state.current_bet - p.street_bet
+    actions = ["fold"]
+
+    if to_call == 0:
+        actions.append("check")
+    else:
+        actions.append("call")
+
+    # min raise: current_bet + min_raise, unless that exceeds stack (all-in for less is ok)
+    min_raise_to = state.current_bet + state.min_raise
+    max_raise_to = p.street_bet + p.stack
+    if max_raise_to > state.current_bet:
+        actions.append("raise")
+        # caller can pass raise_to; validate raise_to >= min_raise_to OR == max_raise_to (all-in)
+
+    return actions
+
+def apply_action(state, seat, action, amount=None):
+    p = player_at(state, seat)
+    to_call = state.current_bet - p.street_bet
+
+    if action == "fold":
+        p.folded = True
+
+    elif action == "check":
+        assert to_call == 0
+
+    elif action == "call":
+        pay = min(to_call, p.stack)
+        commit(p, pay, state)
+
+    elif action == "raise":
+        # amount = total street_bet after raise
+        assert amount is not None
+        assert amount > state.current_bet
+        pay = amount - p.street_bet
+        assert pay <= p.stack
+        commit(p, pay, state)
+        raise_size = amount - state.current_bet
+        if raise_size >= state.min_raise:
+            state.min_raise = raise_size
+            # a full raise reopens action for everyone
+            for other in state.players:
+                if other.seat != seat and not other.folded and not other.all_in:
+                    other.has_acted = False
+        state.current_bet = amount
+        state.last_aggressor = seat
+
+    p.has_acted = True
+    state.action_log.append((state.street, seat, action, amount))
+
+def commit(p, pay, state):
+    p.stack -= pay
+    p.street_bet += pay
+    p.committed += pay
+    if p.stack == 0:
+        p.all_in = True
+
+def round_complete(state):
+    for p in state.players:
+        if p.folded or p.all_in:
+            continue
+        if not p.has_acted:
+            return False
+        if p.street_bet != state.current_bet:
+            return False
+    return True
+
+def advance_street(state):
+    # collect bets into pot
+    for p in state.players:
+        state.pot += p.street_bet
+        p.street_bet = 0
+        p.has_acted = False
+
+    state.current_bet = 0
+    state.min_raise = state.bb
+    state.last_aggressor = None
+
+    if state.street == Street.PREFLOP:
+        state.deck.deal(1)  # burn
+        state.board= state.deck.deal(3)
+        state.street = Street.FLOP
+    elif state.street == Street.FLOP:
+        state.deck.deal(1)
+        state.board.append(state.deck.deal(1))
+        state.street = Street.TURN
+    elif state.street == Street.TURN:
+        state.deck.deal(1)
+        state.board.append(state.deck.deal(1))
+        state.street = Street.RIVER
+    elif state.street == Street.RIVER:
+        state.street = Street.SHOWDOWN
+        return
+
+    state.to_act = first_to_act_postflop(state)
+
+def step(state, action, amount=None):
+    """Processes one player action and advances the state machine."""
+    seat = state.to_act
+
+    if seat is None:
+        return  # hand over
+
+    apply_action(state, seat, action, amount)
+
+    # check if only one player remains
+    live = [p for p in state.players if not p.folded]
+    if len(live) == 1:
+        award_pot(state, live[0])
+        return
+
+    if round_complete(state):
+        if state.street == Street.RIVER:
+            state.street = Street.SHOWDOWN
+            resolve_showdown(state)
+            return
+        advance_street(state)
+    else:
+        state.to_act = next_to_act(state, seat)
+    
+def next_to_act(state, from_seat):
+    order = sorted(p.seat for p in state.players)
+    idx = order.index(from_seat)
+    for i in range(1, len(order) + 1):
+        s = order[(idx + i) % len(order)]
+        p = player_at(state, s)
+        if p.folded or p.all_in:
+            continue
+        if not p.has_acted or p.street_bet != state.current_bet:
+            return s
+    return None
+
+def build_side_pots(state):
+    contribs = sorted(
+        [(p.committed, p.seat) for p in state.players if p.committed > 0],
+    )
+    pots = []          # list of (amount, eligible_seats)
+    prev = 0
+    for level, _ in contribs:
+        if level == prev:
+            continue
+        amount = 0
+        eligible = []
+        for p in state.players:
+            take = min(p.committed, level) - min(p.committed, prev)
+            amount += take
+            if take > 0 and not p.folded:
+                eligible.append(p.seat)
+        if amount > 0:
+            pots.append((amount, eligible))
+        prev = level
+    return pots
+
+def resolve_showdown(state):
+    pots = build_side_pots(state)
+    for amount, eligible in pots:
+        best = -1
+        winners = []
+        for seat in eligible:
+            p = player_at(state, seat)
+            score = evaluate7(p.hole + state.board)
+            if score > best:
+                best = score
+                winners = [seat]
+            elif score == best:
+                winners.append(seat)
+        share = amount // len(winners)
+        remainder = amount - share * len(winners)
+        for i, seat in enumerate(winners):
+            player_at(state, seat).stack += share + (remainder if i == 0 else 0)
+
+def award_pot(state, winner):
+    winner.stack += state.pot
+    state.pot = 0
+
